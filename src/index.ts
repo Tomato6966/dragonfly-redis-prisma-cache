@@ -1,5 +1,4 @@
 import { TedisPool, Tedis } from 'tedis';
-import { Prisma } from "prisma";
 
 export interface CacheOptions {
     storageOptions: {
@@ -39,10 +38,10 @@ export type MiddlewareParameters = {
 }
 
 class prismaDragonflyRedisCacheMiddleware <Prisma> {
-    private client: TedisPool | Tedis;
-    private isPool: boolean;
-    private useAllModels: boolean;
-    private toCache: {
+    private client!: TedisPool | Tedis;
+    private isPool!: boolean;
+    private useAllModels!: boolean;
+    private toCache!: {
         model: string,
         actions: string[],
         ttl?: number,
@@ -60,10 +59,10 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
             delete options.storageOptions.min_conn;
             delete options.storageOptions.max_conn;
         } else {
-            if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
+            if(!options.storageOptions?.max_conn!) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
             else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
         }
-        this.client = this.isPool ? new TedisPool(options.storageOptions) : new Tedis(options.storageOptions);
+        this.client = this.isPool ? new TedisPool(options.storageOptions!) : new Tedis(options.storageOptions);
     }
 
     public async handle(params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>){
@@ -114,7 +113,7 @@ function validate(options:CacheOptions) {
     if(typeof options.toCache !== "undefined" || !Array.isArray(options.toCache)) throw new SyntaxError("No option toCache was provided / option toCache is not a valid Array");
     return true;
 }
-function bind(o: any) {
+function bind(o: any) { // @ts-ignore
 	for (const [object, key] of gAllProps(o.constructor.prototype)) {
 		if (key === 'constructor') continue;
         // find the traget of the property
