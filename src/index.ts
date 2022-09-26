@@ -81,9 +81,9 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
                 // using stringified results, because that way it uses PPC2 from dragonfly to save 54% storage space
                 result = await next(params);
                 if(instance.ttl) {
-                    await tedis.set(cacheKey, JSON.stringify(result), 'EX', instance.ttl)
+                    await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)), 'EX', instance.ttl)
                 } else {
-                    await tedis.set(cacheKey, JSON.stringify(result))
+                    await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)))
                 }
             }
             // @ts-ignore
