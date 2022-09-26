@@ -22,7 +22,7 @@ export interface CacheOptions {
         model: string,
         /** all actions to use the cache on */
         actions: string[],
-        /** Time to live */
+        /** Time to live in seconds */
         ttl?: number,
         /** Prefix for the cache key */
         prefix?: string
@@ -40,6 +40,7 @@ export type MiddlewareParameters = {
 class prismaDragonflyRedisCacheMiddleware <Prisma> {
     private client!: TedisPool | Tedis;
     private isPool!: boolean;
+    private defaultCacheActions!: string[];
     private useAllModels!: boolean;
     private toCache!: {
         model: string,
@@ -53,6 +54,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         bind(this);
         if(!options || !options.toCache || !options.storageOptions) return;
         this.toCache = options.toCache;
+        this.defaultCacheActions = options.defaultCacheActions ?? [];
         this.useAllModels = options.useAllModels ?? false;
         this.isPool = !!(options?.storageOptions?.min_conn && options.storageOptions.min_conn >= 1)
         if(!this.isPool) {
@@ -67,7 +69,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
 
     public async handle(params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>){
         let result: any = null;
-        const instance = this.toCache.find(instance => (this.useAllModels || instance.model === params.model) && instance.actions.includes(params.action))
+        const instance = this.toCache.find(instance => (this.useAllModels || instance.model === params.model) && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
             const cacheKey = `${instance.prefix ? `${instance.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
             // @ts-ignore
@@ -111,6 +113,7 @@ function validate(options:CacheOptions) {
     if(!options || typeof options !== "object") throw new SyntaxError("no valid cacheOptions provided")
     if(typeof options.useAllModels !== "undefined" && typeof options.useAllModels !== "boolean") throw new SyntaxError("option useAllModels was not as a boolean provided");
     if(typeof options.toCache !== "undefined" || !Array.isArray(options.toCache)) throw new SyntaxError("No option toCache was provided / option toCache is not a valid Array");
+    if(typeof options.defaultCacheActions !== "undefined" || !Array.isArray(options.defaultCacheActions)) throw new SyntaxError("No option defaultCacheActions was provided / option defaultCacheActions is not a valid Array");
     return true;
 }
 function bind(o: any) { // @ts-ignore

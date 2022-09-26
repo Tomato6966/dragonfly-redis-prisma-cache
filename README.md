@@ -32,16 +32,18 @@ prisma.$use(prismaDragonflyRedisCache({
         //    cert: Buffer.from("cert_string"),
         //  };
     },
+    useAllModels: true,
+    defaultCacheActions: [ "findUnique", "findFirst", "findMany", "count", "aggregate", "groupBy", "findRaw", "aggregateRaw" ]
     toCache: [
         {                      
             model: 'Users',                
-            action: 'findFirst',           
-            ttl: 20,                       
-            keyPrefix: 'myCache'             
+            actions: ['findFirst', "findUnique", "count"],           
+            ttl: 60,                       
+            keyPrefix: 'usrs'             
         },
-        {                                
+        {
             model: 'Users',
-            action: 'findMany',
+            actions: ['findFirst', "findUnique", "count"],
         }
     ]
 }));
