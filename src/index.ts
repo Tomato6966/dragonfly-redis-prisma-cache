@@ -31,7 +31,7 @@ export interface CacheOptions {
 
 export type MiddlewareParameters = {
     model?: string;
-    actions: string[];
+    action: string;
     args: any;
     dataPath: string[];
     runInTransaction: boolean;
@@ -51,16 +51,17 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
     constructor(options: CacheOptions){
         validate(options)
         bind(this);
+        if(!options || !options.toCache || !options.storageOptions) return;
         this.toCache = options.toCache;
         this.useAllModels = options.useAllModels ?? false;
-        this.isPool = options.storageOptions.min_conn && options.storageOptions.min_conn >= 1
+        this.isPool = !!(options?.storageOptions?.min_conn && options.storageOptions.min_conn >= 1)
         if(!this.isPool) {
             delete options.storageOptions.min_conn;
             delete options.storageOptions.max_conn;
             this.client = new Tedis(options.storageOptions);
         } else {
-            if(!options.storageOptions.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
-            else if(options.storageOptions.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
+            if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
+            else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
             this.client = new TedisPool(options.storageOptions);
         }
     }
@@ -70,6 +71,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         const instance = this.toCache.find(instance => (this.useAllModels || instance.model === params.model) && instance.actions.includes(params.action))
         if(instance){
             const cacheKey = `${instance.prefix ? `${instance.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
+            // @ts-ignore
             const tedis = this.isPool ? await this.client.getTedis() : this.client;
             const findCache = await tedis.get(cacheKey);
 
@@ -85,6 +87,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
                     await tedis.set(cacheKey, JSON.stringify(result))
                 }
             }
+            // @ts-ignore
             if(this.isPool) await this.client.putTedis(tedis);
         } else console.log(`Could not find instance for ${params.model}`)
 
