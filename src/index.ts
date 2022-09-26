@@ -1,4 +1,5 @@
 import { TedisPool, Tedis } from 'tedis';
+import { Prisma } from "prisma";
 
 export interface CacheOptions {
     storageOptions: {
@@ -58,12 +59,11 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         if(!this.isPool) {
             delete options.storageOptions.min_conn;
             delete options.storageOptions.max_conn;
-            this.client = new Tedis(options.storageOptions);
         } else {
             if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
             else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
-            this.client = new TedisPool(options.storageOptions);
         }
+        this.client = this.isPool ? new TedisPool(options.storageOptions) : new Tedis(options.storageOptions);
     }
 
     public async handle(params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>){
