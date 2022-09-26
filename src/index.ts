@@ -70,7 +70,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         const instance = this.toCache.find(instance => (this.useAllModels || instance.model === params.model) && instance.actions.includes(params.action))
         if(instance){
             const cacheKey = `${instance.prefix ? `${instance.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
-            const tedis = this.isPool ? await this.getTedis() : this.client;
+            const tedis = this.isPool ? await this.client.getTedis() : this.client;
             const findCache = await tedis.get(cacheKey);
 
             if(findCache) {
@@ -85,7 +85,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
                     await tedis.set(cacheKey, JSON.stringify(result))
                 }
             }
-            if(this.isPool) await this.putTedis(tedis);
+            if(this.isPool) await this.client.putTedis(tedis);
         } else console.log(`Could not find instance for ${params.model}`)
 
         // not cached
