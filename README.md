@@ -1,6 +1,10 @@
 # dragonfly-redis-prisma-cache
 A Cache middleware for dragonfly (faster then redis), which still can be used with redis.
 
+# DRAGONFLY NOTE:
+
+Project archived, i dont wanna particapted
+
 # Install Package
 ```
 npm i Tomato6966/dragonfly-redis-prisma-cache
