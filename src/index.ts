@@ -49,8 +49,8 @@ export type MiddlewareParameters = {
 }
 
 class prismaDragonflyRedisCacheMiddleware <Prisma> {
-    public client!: TedisPool | Tedis;
-    public isPool!: boolean;
+    client!: TedisPool | Tedis;
+    isPool!: boolean;
     public defaultCacheActions!: string[];
     public defaultTTL!: number;
     public useAllModels!: boolean;
@@ -75,10 +75,10 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
             delete options.storageOptions.max_conn;
         } else {
             // @ts-ignore
-            if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1; else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
+            if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
+            else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
         }
         this.client = this.isPool ? new TedisPool(options.storageOptions!) : new Tedis(options.storageOptions);
-        console.log("cache initiated")
     }
 
     public handle = async (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) => { 
