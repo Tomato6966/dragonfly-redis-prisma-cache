@@ -9,7 +9,7 @@ npm i Tomato6966/dragonfly-redis-prisma-cache
 # Use Package
 ```js
 import { PrismaClient } from '@prisma/client'
-import { prismaDragonflyRedisCache } from 'prisma-cache-middleware';
+import { prismaDragonflyRedisCache } from 'dragonfly-redis-prisma-cache';
 
 const prisma = new PrismaClient();
 
