@@ -27,7 +27,9 @@ export interface CacheOptions {
     defaultCacheActions?: string[];
     /** If it should use a ttl on default if the cache Action does not have a ttl / if useAllModels == true */
     defaultTTL?: number;
-    /** All cache elements, if you don't wanna use useALlModels and defaultCacheActiosn*/
+    /** If there should be debug logs */
+    debug?: boolean;
+    /** All cache elements, if you don't wanna use useALlModels and defaultCacheActions */
     toCache: {
         /** all models to use () */
         model: string,
@@ -47,23 +49,35 @@ export type MiddlewareParameters = {
     dataPath: string[];
     runInTransaction: boolean;
 }
+export const defaultMutationMethods = [
+    "create",
+    "createMany",
+    "update",
+    "updateMany",
+    "upsert",
+    "delete",
+    "deleteMany",
+    "executeRawUnsafe",
+];
 
 class prismaDragonflyRedisCacheMiddleware {
     private client: TedisPool | Tedis;
     private isPool: boolean;
-    public defaultCacheActions: string[];
-    public defaultTTL: number;
-    public useAllModels: boolean;
-    public toCache: {
+    private defaultCacheActions: string[];
+    private defaultTTL: number;
+    private useAllModels: boolean;
+    private toCache: {
         model: string,
         actions: string[],
         ttl?: number,
         prefix?: string
     }[];
+    private debug: boolean;
     constructor(options: CacheOptions){
 
         validate(options)
         if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) throw new SyntaxError("Something went wrong, not all options provided..");
+        this.debug = options?.debug ?? false;
         this.toCache = options?.toCache ?? [];
         this.defaultTTL = options?.defaultTTL ?? 0;
         this.defaultCacheActions = options.defaultCacheActions ?? [];
@@ -81,8 +95,6 @@ class prismaDragonflyRedisCacheMiddleware {
 
     public handle = async (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) => { 
         let result: any = null;
-        console.log(this)
-        console.log(this.useAllModels, this.defaultCacheActions.includes(params.action), params.action, params.model)
         const instance = (this.useAllModels && this.defaultCacheActions.includes(params.action)) || this.toCache?.find?.(instance => instance.model === params.model && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
             const data = typeof instance === "object" ? instance : { model: params.model, ttl: this.defaultTTL, prefix: "" };
@@ -95,13 +107,17 @@ class prismaDragonflyRedisCacheMiddleware {
             const findCache = await tedis.get(cacheKey);
 
             if(findCache) {
-                console.log("found something from the cache")
-                result = JSON.parse(findCache);
+                try {
+                    result = JSON.parse(findCache);
+                    if(this.debug) console.log(`[Dragonfly-Redis-Prisma-Cache] ${params.model}.${params.action}() received data from Cache`);    
+                } catch(e) {
+                    console.error(e);
+                }
             }
             else {
                 // using stringified results, because that way it uses PPC2 from dragonfly to save 54% storage space
                 result = await next(params);
-                console.log("found something from the db: ", cacheKey)
+                console.log("[Dragonfly-Redis-Prisma-Cache] Found something from the db and now storing it in:", cacheKey)
                 if(data.ttl) {
                     await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)), 'EX', data.ttl)
                 } else {
@@ -110,13 +126,22 @@ class prismaDragonflyRedisCacheMiddleware {
             }
             // @ts-ignore
             if(this.isPool) await this.client.putTedis(tedis);
-        } else console.log(`Could not find instance for ${params.model}`)
+        } else if(this.debug) console.log(`[Dragonfly-Redis-Prisma-Cache] Could not find instance for ${params.model}`)
 
         // not cached
         if(!result) {
             result = await next(params);
         }
         
+        // delete everything from cache again...
+        if (defaultMutationMethods.includes(params.action)) {
+            // @ts-ignore
+            const tedis = this.isPool ? await this.client.getTedis() : this.client;
+            const keys = await tedis.keys(`*${params.model}:*`);
+            for(const key of keys) await tedis.delete(key); 
+            if(this.isPool) await this.client.putTedis(tedis);
+            if(this.debug) console.log(`[Dragonfly-Redis-Prisma-Cache] Invalidated ${keys.length} Keys after a mutationAction`)
+        }
         return result;
     }
 }
@@ -127,7 +152,9 @@ function validate(options:CacheOptions) {
     if(options.toCache && !Array.isArray(options.toCache)) throw new SyntaxError("No option toCache was provided / option toCache is not a valid Array");
     if(!options.toCache && !options.useAllModels) throw new SyntaxError("No toCache and no useAllModels provided..")
     if(!options.defaultCacheActions || !Array.isArray(options.defaultCacheActions)) throw new SyntaxError("No option defaultCacheActions was provided / option defaultCacheActions is not a valid Array");
-    if(options.defaultTTL)
+    if(options.defaultTTL && typeof options.defaultTTL !== "number") throw new SyntaxError("Option defaultTTL provided but its not a number")
+    if(options.defaultTTL && options.defaultTTL <= 0) throw new SyntaxError("Optuion defaultTTL provided but its smaller or equal to 0");
+    if(options.debug && typeof options.debug !== "boolean") throw new SyntaxError("Option debug provided which is not a boolean");
     return true;
 }
 
