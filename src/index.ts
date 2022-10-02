@@ -114,7 +114,8 @@ const gAllProps = (object: any) => {
 function validate(options:CacheOptions) {
     if(!options || typeof options !== "object") throw new SyntaxError("no valid cacheOptions provided")
     if(typeof options.useAllModels !== "undefined" && typeof options.useAllModels !== "boolean") throw new SyntaxError("option useAllModels was not as a boolean provided");
-    if(typeof options.toCache !== "undefined" || !Array.isArray(options.toCache)) throw new SyntaxError("No option toCache was provided / option toCache is not a valid Array");
+    if(options.toCache && typeof options.toCache !== "undefined" || !Array.isArray(options.toCache)) throw new SyntaxError("No option toCache was provided / option toCache is not a valid Array");
+    if(!options.toCache && !options.useAllModels) throw new SyntaxError("No toCache and no useAllModels provided..")
     if(typeof options.defaultCacheActions !== "undefined" || !Array.isArray(options.defaultCacheActions)) throw new SyntaxError("No option defaultCacheActions was provided / option defaultCacheActions is not a valid Array");
     return true;
 }
