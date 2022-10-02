@@ -75,8 +75,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
             delete options.storageOptions.max_conn;
         } else {
             // @ts-ignore
-            if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
-            else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
+            if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1; else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
         }
         this.client = this.isPool ? new TedisPool(options.storageOptions!) : new Tedis(options.storageOptions);
     }
