@@ -49,8 +49,8 @@ export type MiddlewareParameters = {
 }
 
 class prismaDragonflyRedisCacheMiddleware <Prisma> {
-    client!: TedisPool | Tedis;
-    isPool!: boolean;
+    private client!: TedisPool | Tedis;
+    private isPool!: boolean;
     public defaultCacheActions!: string[];
     public defaultTTL!: number;
     public useAllModels!: boolean;
@@ -63,7 +63,6 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
 
     constructor(options: CacheOptions){
         validate(options)
-        //bind(this);
         if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
         this.toCache = options?.toCache ?? [];
         this.defaultTTL = options?.defaultTTL ?? 0;
@@ -78,6 +77,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
             if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1; else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
         }
         this.client = this.isPool ? new TedisPool(options.storageOptions!) : new Tedis(options.storageOptions);
+        console.log(this)
     }
 
     public handle = async (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) => { 
@@ -122,14 +122,6 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
     }
 }
 
-const gAllProps = (object: any) => {
-	const p = new Set();
-	do {
-		for (const key of Reflect.ownKeys(object)) p.add([object, key]);
-	} while ((object = Reflect.getPrototypeOf(object)) && object !== Object.prototype);
-	return p;
-};
-
 function validate(options:CacheOptions) {
     if(!options || typeof options !== "object") throw new SyntaxError("no valid cacheOptions provided")
     if(typeof options.useAllModels !== "undefined" && typeof options.useAllModels !== "boolean") throw new SyntaxError("option useAllModels was not as a boolean provided");
@@ -138,15 +130,6 @@ function validate(options:CacheOptions) {
     if(!options.defaultCacheActions || !Array.isArray(options.defaultCacheActions)) throw new SyntaxError("No option defaultCacheActions was provided / option defaultCacheActions is not a valid Array");
     if(options.defaultTTL)
     return true;
-}
-function bind(o: any) { // @ts-ignore
-	for (const [object, key] of gAllProps(o.constructor.prototype)) {
-		if (key === 'constructor') continue;
-        // find the traget of the property
-		const target = Reflect.getOwnPropertyDescriptor(object, key);
-		if (target && typeof target.value === 'function') o[key] = o[key].bind(o);
-	}
-	return o;
 }
 
 export function prismaDragonflyRedisCache(options: CacheOptions) {
