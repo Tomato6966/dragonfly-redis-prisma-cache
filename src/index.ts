@@ -52,10 +52,10 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
     constructor(options: CacheOptions){
         validate(options)
         bind(this);
-        if(!options || !options.toCache || !options.storageOptions) return;
-        this.toCache = options.toCache;
+        if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
+        this.toCache = options.toCache ?? [];
         this.defaultCacheActions = options.defaultCacheActions ?? [];
-        this.useAllModels = options.useAllModels ?? false;
+        this.useAllModels = options.useAllModels ?? !this.toCache?.length ? true : false;
         this.isPool = !!(options?.storageOptions?.min_conn && options.storageOptions.min_conn >= 1)
         if(!this.isPool) {
             delete options.storageOptions.min_conn;
