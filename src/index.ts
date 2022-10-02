@@ -140,7 +140,7 @@ class prismaDragonflyRedisCacheMiddleware {
             const keysData = await tedis.keys(`*${params.model}:*`);
             let keys = [];
             if(params.args.where) {
-                const filtered = keysData.filter(k => k.includes(JSON.stringify(params.args.where)))
+                const filtered = keysData.filter((k:string) => k.includes(JSON.stringify(params.args.where)))
                 keys = filtered.length ? filtered : keysData;
                 console.log(keysData.length, filtered.length);
             }
