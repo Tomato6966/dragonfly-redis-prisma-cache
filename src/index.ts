@@ -66,7 +66,7 @@ class prismaDragonflyRedisCacheMiddleware {
         this.options = options; 
         //validate(options)
         //if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
-        
+        console.log(this)
         this.toCache = options?.toCache ?? [];
         this.defaultTTL = options?.defaultTTL ?? 0;
         this.defaultCacheActions = options.defaultCacheActions ?? [];
