@@ -38,11 +38,11 @@ export type MiddlewareParameters = {
 }
 
 class prismaDragonflyRedisCacheMiddleware <Prisma> {
-    client!: TedisPool | Tedis;
-    isPool!: boolean;
-    defaultCacheActions!: string[];
-    useAllModels!: boolean;
-    toCache!: {
+    private client!: TedisPool | Tedis;
+    private isPool!: boolean;
+    private defaultCacheActions!: string[];
+    private useAllModels!: boolean;
+    private toCache!: {
         model: string,
         actions: string[],
         ttl?: number,
@@ -68,7 +68,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         console.log("cache initiated")
     }
 
-    async handle(params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>){
+    public handle = async (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) => { 
         let result: any = null;
         const instance = this.toCache.find(instance => (this.useAllModels || instance.model === params.model) && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
