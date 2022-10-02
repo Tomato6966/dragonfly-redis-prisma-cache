@@ -6,6 +6,37 @@ A Cache middleware for dragonfly (faster then redis), which still can be used wi
 npm i Tomato6966/dragonfly-redis-prisma-cache
 ```
 
+# Why should u use this?
+
+First you should always cache a database for GET-QUERY REQUESTS.
+This way you reduce traffic on a database.
+Prisma is very great as this way you can use postgresql / mongodb / mysql... with the same wrapper! and still are able to use this cache with all dbs!
+
+It's the most optimal, when beeing used with [dragonfly](https://github.com/dragonflydb/dragonfly)
+Because dragonfly is like redis, yet it has multithreading and can handle hundred of thousands requests at the same time!
+
+This package is better then other cache wrappers cause it invalidates only thigns related to what you change!
+
+You can still use it with regular redis tho.
+
+## How to install and use dragonfly
+
+1. download it
+```
+wget https://github.com/dragonflydb/dragonfly/releases/latest/download/dragonfly-x86_64.tar.gz && tar -xvzf dragonfly-x86_64.tar.gz && rm dragonfly-x86_64.tar.gz
+```
+2. start it (host, port, max memory in bytes, auto storage in a single file with autosavings every 30mins)
+```
+./dragonfly-x86_64 --logtostderr --requirepass=youshallnotpass --bind localhost --port 5000 --hz=10 --save_schedule "*:30" --maxmemory 4294967296 --dbfilename dump.rdb
+```
+3. you can paste all of that inside a "startdragonfly.sh" file and start that file via pm2 / screen etc.
+```
+echo "./dragonfly-x86_64 --logtostderr --requirepass=youshallnotpass --bind localhost --port 5000 --hz=10 --save_schedule "*:30" --maxmemory 4294967296 --dbfilename dump.rdb" > startdragonfly.sh
+chmod +rwx startdragonfly.sh
+# e.g. with pm2
+pm2 start --name dragonflycache ./startdragonfly.sh
+```
+
 # Use Package
 ```js
 import { PrismaClient } from '@prisma/client'
