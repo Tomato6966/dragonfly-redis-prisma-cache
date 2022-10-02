@@ -37,11 +37,11 @@ wget https://github.com/dragonflydb/dragonfly/releases/latest/download/dragonfly
 ```
 2. start it (host, port, max memory in bytes, auto storage in a single file with autosavings every 30mins)
 ```
-./dragonfly-x86_64 --logtostderr --requirepass=youshallnotpass --bind localhost --port 5000 --hz=10 --save_schedule "*:30" --maxmemory 4294967296 --dbfilename dump.rdb
+./dragonfly-x86_64 --logtostderr --requirepass=youshallnotpass --bind localhost --port 6739 --hz=10 --save_schedule "*:30" --maxmemory 4294967296 --dbfilename dump.rdb
 ```
 3. you can paste all of that inside a "startdragonfly.sh" file and start that file via pm2 / screen etc.
 ```
-echo "./dragonfly-x86_64 --logtostderr --requirepass=youshallnotpass --bind localhost --port 5000 --hz=10 --save_schedule "*:30" --maxmemory 4294967296 --dbfilename dump.rdb" > startdragonfly.sh
+echo "./dragonfly-x86_64 --logtostderr --requirepass=youshallnotpass --bind localhost --port 6739 --hz=10 --save_schedule "*:30" --maxmemory 4294967296 --dbfilename dump.rdb" > startdragonfly.sh
 chmod +rwx startdragonfly.sh
 # e.g. with pm2
 pm2 start --name dragonflycache ./startdragonfly.sh
@@ -98,7 +98,7 @@ example how i do it:
 const { getRedisDataOfURL, prismaDragonflyRedisCache } = require("dragonfly-redis-prisma-cache");
 prisma.$use(prismaDragonflyRedisCache({
     storageOptions: {
-        ...(getRedisDataOfURL(process.env.DATABASECACHECONNECTURL)),
+        ...(getRedisDataOfURL("redis://:password@127.0.0.1:6739")),
         min_conn: 100,
         max_conn: 1000,
     },
