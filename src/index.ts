@@ -85,9 +85,11 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         let result: any = null;
         const instance = (this.useAllModels && this.defaultCacheActions.includes(params.action)) || this.toCache?.find?.(instance => instance.model === params.model && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
-            const data = typeof instance === "object" ? instance : { model: params.model, ttl: this.defaultTTL, prefix: "", }
+            const data = typeof instance === "object" ? instance : { model: params.model };
+
             if(!data.ttl && this.defaultTTL > 0) data.ttl = this.defaultTTL;
-            const cacheKey = `${instance.prefix ? `${instance.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
+            
+            const cacheKey = `${data.prefix ? `${data.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
             // @ts-ignore
             const tedis = this.isPool ? await this.client.getTedis() : this.client;
             const findCache = await tedis.get(cacheKey);
@@ -100,8 +102,8 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
                 // using stringified results, because that way it uses PPC2 from dragonfly to save 54% storage space
                 result = await next(params);
                 console.log("found something from the db: ", cacheKey)
-                if(instance.ttl) {
-                    await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)), 'EX', instance.ttl)
+                if(data.ttl) {
+                    await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)), 'EX', data.ttl)
                 } else {
                     await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)))
                 }
