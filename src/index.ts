@@ -81,7 +81,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         console.log("cache initiated")
     }
 
-    public handle = async (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) => { 
+    public async handle (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) { 
         let result: any = null;
         console.log(this)
         console.log(this.useAllModels, this.defaultCacheActions.includes(params.action), params.action, params.model)
