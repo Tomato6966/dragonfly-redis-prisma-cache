@@ -77,11 +77,13 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
             const findCache = await tedis.get(cacheKey);
 
             if(findCache) {
+                console.log("found something from the cache")
                 result = JSON.parse(findCache);
             }
             else {
                 // using stringified results, because that way it uses PPC2 from dragonfly to save 54% storage space
                 result = await next(params);
+                console.log("found something from the db: ", cacheKey)
                 if(instance.ttl) {
                     await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)), 'EX', instance.ttl)
                 } else {
