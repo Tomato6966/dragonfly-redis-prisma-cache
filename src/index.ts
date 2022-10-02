@@ -51,7 +51,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
 
     constructor(options: CacheOptions){
         validate(options)
-        bind(this);
+        //bind(this);
         if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
         this.toCache = options?.toCache ?? [];
         this.defaultCacheActions = options.defaultCacheActions ?? [];
@@ -68,7 +68,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         console.log("cache initiated")
     }
 
-    public async handle(params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>){
+    async handle(params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>){
         let result: any = null;
         const instance = this.toCache.find(instance => (this.useAllModels || instance.model === params.model) && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
