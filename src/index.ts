@@ -66,7 +66,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         //bind(this);
         if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
         this.toCache = options?.toCache ?? [];
-        this.defaultTTL = options?.defaultTTL;
+        this.defaultTTL = options?.defaultTTL ?? 0;
         this.defaultCacheActions = options.defaultCacheActions ?? [];
         this.useAllModels = options.useAllModels ?? !options?.toCache?.length ? true : false;
         this.isPool = !!(options?.storageOptions?.min_conn && options.storageOptions.min_conn >= 1)
@@ -85,8 +85,8 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         let result: any = null;
         const instance = (this.useAllModels && this.defaultCacheActions.includes(params.action)) || this.toCache?.find?.(instance => instance.model === params.model && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
-            const data = typeof instance === "object" ? instance : { model: params.model }
-            if(!data.ttl && this.defaultTTL) data.ttl = this.defaultTTL;
+            const data = typeof instance === "object" ? instance : { model: params.model, ttl: this.defaultTTL, prefix: "", }
+            if(!data.ttl && this.defaultTTL > 0) data.ttl = this.defaultTTL;
             const cacheKey = `${instance.prefix ? `${instance.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
             // @ts-ignore
             const tedis = this.isPool ? await this.client.getTedis() : this.client;
@@ -150,8 +150,12 @@ export function prismaDragonflyRedisCache(options: CacheOptions) {
     const newCache = new prismaDragonflyRedisCacheMiddleware(options);
     return newCache.handle;
 }
-export function getRedisDataOfURL (str) {
-    // example url: "redis://username:password@hostname:port"
-    const [ username, [password, host], port ] = str.replace("redis://", "").split(":").map(x => x.includes("@") ? x.split("@") : x);
-    return { username, password, host, port }
+/**
+ * extract redis options of a redis connect uri. e.g: "redis://username:password@hostname:port"
+ * @param str 
+ * @returns  object for redis authentication
+ */
+export function getRedisDataOfURL (str:string) {
+    const [ username, [password, host], port ] = str.replace("redis://", "").split(":").map((x:string) => x.includes("@") ? x.split("@") : x);
+    return { username, password, host, port: port && !isNaN(port) ? Number(port) : port }
 }
