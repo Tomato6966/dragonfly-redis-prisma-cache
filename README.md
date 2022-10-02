@@ -19,6 +19,9 @@ This package is better then other cache wrappers cause it invalidates only thign
 
 You can still use it with regular redis tho.
 
+Why no invalidation based on cache size?
+- dragonfly has that built in 
+
 ### Performance improvements:
 
 - No cache at all: 2-4ms for get query requests based on: ~10 requests / Seconds and while beeing on localhost with citus psql (psql but threaded)
