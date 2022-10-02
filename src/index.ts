@@ -16,7 +16,7 @@ export interface CacheOptions {
     }
     /** IF I should cache all Models */
     useAllModels: boolean;
-
+    defaultCacheActions?: string[],
     toCache: {
         /** all models to use () */
         model: string,
