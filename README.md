@@ -22,8 +22,8 @@ You can still use it with regular redis tho.
 ### Performance improvements:
 
 - No cache at all: 2-4ms for get query requests based on: ~10 requests / Seconds and while beeing on localhost with citus psql (psql but threaded)
-- Cache via dragonfly: 0.8-1ms for all get query (if they not set in cache yet, then it's a psql request time of 2-4ms)
 - Cache via psql: 1.4-2.5ms --> However that cache is not as efficient as the one from dragonfly since dragonflys storage engine is OP
+**- Cache via dragonfly: 0.8-1ms for all get query (if they not set in cache yet, then it's a psql request time of 2-4ms)** (aka this package ;))
 
 #### Check this Video for example 
 
