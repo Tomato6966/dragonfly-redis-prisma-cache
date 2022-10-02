@@ -135,10 +135,15 @@ class prismaDragonflyRedisCacheMiddleware {
         
         // delete everything from cache again...
         if (defaultMutationMethods.includes(params.action)) {
-            console.log(params)
             // @ts-ignore
             const tedis = this.isPool ? await this.client.getTedis() : this.client;
-            const keys = await tedis.keys(`*${params.model}:*`);
+            const keysData = await tedis.keys(`*${params.model}:*`);
+            let keys = [];
+            if(params.args.where) {
+                const filtered = keysData.filter(k => k.includes(JSON.stringify(params.args.where)))
+                keys = filtered.length ? filtered : keysData;
+                console.log(keysData.length, filtered.length);
+            }
             for(const key of keys) await tedis.del(key); 
             // @ts-ignore
             if(this.isPool) await this.client.putTedis(tedis);
