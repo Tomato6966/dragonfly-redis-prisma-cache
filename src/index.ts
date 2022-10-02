@@ -157,7 +157,8 @@ export function prismaDragonflyRedisCache(options: CacheOptions) {
  * @param str 
  * @returns  object for redis authentication
  */
-export function getRedisDataOfURL (str:string) {
-    const [ username, [password, host], port ] = str.replace("redis://", "").split(":").map((x:string) => x.includes("@") ? x.split("@") : x);
-    return { username, password, host, port: port && !isNaN(port) ? Number(port) : port }
+export function getRedisDataOfURL (str:string) { // @ts-ignore
+    const [ username, [password, host], p ] = str.replace("redis://", "").split(":").map((x:string) => x.includes("@") ? x.split("@") : x);
+    const port = (p && !isNaN(p) ? Number(p) : undefined) as number|undefined;
+    return { username, password, host, port };
 }
