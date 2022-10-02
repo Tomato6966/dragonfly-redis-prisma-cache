@@ -77,7 +77,6 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
             if(!options.storageOptions?.max_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1; else if(options.storageOptions?.max_conn <= options.storageOptions.min_conn) options.storageOptions.max_conn = options.storageOptions.min_conn + 1;
         }
         this.client = this.isPool ? new TedisPool(options.storageOptions!) : new Tedis(options.storageOptions);
-        console.log(this)
     }
 
     public handle = async (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) => { 
@@ -134,6 +133,7 @@ function validate(options:CacheOptions) {
 
 export function prismaDragonflyRedisCache(options: CacheOptions) {
     const newCache = new prismaDragonflyRedisCacheMiddleware(options);
+    console.log(newCache);
     return newCache.handle;
 }
 /**
