@@ -34,6 +34,7 @@ prisma.$use(prismaDragonflyRedisCache({
     },
     useAllModels: true, //overwrites toCache
     defaultCacheActions: [ "findUnique", "findFirst", "findMany", "count", "aggregate", "groupBy", "findRaw", "aggregateRaw" ],
+    defaultTTL: 0, // amount of ttl for on default
     toCache: [
         {                      
             model: 'Users',                

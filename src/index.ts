@@ -85,7 +85,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         let result: any = null;
         const instance = (this.useAllModels && this.defaultCacheActions.includes(params.action)) || this.toCache?.find?.(instance => instance.model === params.model && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
-            const data = typeof instance === "object" ? instance : { model: params.model };
+            const data = typeof instance === "object" ? instance : { model: params.model, ttl: this.defaultTTL, prefix: "" };
 
             if(!data.ttl && this.defaultTTL > 0) data.ttl = this.defaultTTL;
             
