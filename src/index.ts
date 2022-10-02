@@ -138,7 +138,7 @@ class prismaDragonflyRedisCacheMiddleware {
             // @ts-ignore
             const tedis = this.isPool ? await this.client.getTedis() : this.client;
             const keys = await tedis.keys(`*${params.model}:*`);
-            for(const key of keys) await tedis.delete(key); 
+            for(const key of keys) await tedis.del(key); 
             // @ts-ignore
             if(this.isPool) await this.client.putTedis(tedis);
             if(this.debug) console.log(`[Dragonfly-Redis-Prisma-Cache] Invalidated ${keys.length} Keys after a mutationAction`)
