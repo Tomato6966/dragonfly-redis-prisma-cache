@@ -53,21 +53,16 @@ export default prisma;
 example how i do it:
 
 ```js
+const { getRedisDataOfURL, prismaDragonflyRedisCache } = require("dragonfly-redis-prisma-cache");
 prisma.$use(prismaDragonflyRedisCache({
     redisOptions: {
         ...(getRedisDataOfURL(process.env.DATABASECACHECONNECTURL)),
-        timeout: 2000,
         min_conn: 100,
         max_conn: 1000,
     },
     useAllModels: true,
     defaultCacheActions: [ "findUnique", "findFirst", "findMany", "count", "aggregate", "groupBy", "findRaw", "aggregateRaw" ],
 }));
-function getRedisDataOfURL (str) {
-    // example url: "redis://username:password@hostname:port"
-    const [ username, [password, host], port ] = str.replace("redis://", "").split(":").map(x => x.includes("@") ? x.split("@") : x);
-    return { username, password, host, port }
-}
 ```
 
 ### Devnote: Building and formatting

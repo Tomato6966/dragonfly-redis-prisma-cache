@@ -1,14 +1,21 @@
 import { TedisPool, Tedis } from 'tedis';
 
 export interface CacheOptions {
+    /** Storage Options from Redis */
     storageOptions: {
+        /** Hostname / Domain / IpAddress */
         host?: string;
+        /** POrt of the Host */
         port?: number;
+        /** Password of the host */
         password?: string;
+        /** Timeout of the host when to stop the connection */
         timeout?: number;
         /** If undefined | <= 0 then no Pool will be used */
         min_conn?: number;
+        /** Max connections for a pool */
         max_conn?: number;
+        /** If tls is used for authentication. */
         tls?: {
           key: Buffer;
           cert: Buffer;
@@ -16,7 +23,11 @@ export interface CacheOptions {
     }
     /** IF I should cache all Models */
     useAllModels: boolean;
-    defaultCacheActions?: string[],
+    /** All Query-Actions to use on default. it will cache if the query action is inside of this or inside of the correct toCache Element */
+    defaultCacheActions?: string[];
+    /** If it should use a ttl on default if the cache Action does not have a ttl / if useAllModels == true */
+    defaultTTL?: number;
+    /** All cache elements, if you don't wanna use useALlModels and defaultCacheActiosn*/
     toCache: {
         /** all models to use () */
         model: string,
@@ -41,6 +52,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
     private client!: TedisPool | Tedis;
     private isPool!: boolean;
     private defaultCacheActions!: string[];
+    private defaultTTL!: number;
     private useAllModels!: boolean;
     private toCache!: {
         model: string,
@@ -54,6 +66,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         //bind(this);
         if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
         this.toCache = options?.toCache ?? [];
+        this.defaultTTL = options?.defaultTTL;
         this.defaultCacheActions = options.defaultCacheActions ?? [];
         this.useAllModels = options.useAllModels ?? !options?.toCache?.length ? true : false;
         this.isPool = !!(options?.storageOptions?.min_conn && options.storageOptions.min_conn >= 1)
@@ -72,6 +85,8 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
         let result: any = null;
         const instance = (this.useAllModels && this.defaultCacheActions.includes(params.action)) || this.toCache?.find?.(instance => instance.model === params.model && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
+            const data = typeof instance === "object" ? instance : { model: params.model }
+            if(!data.ttl && this.defaultTTL) data.ttl = this.defaultTTL;
             const cacheKey = `${instance.prefix ? `${instance.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
             // @ts-ignore
             const tedis = this.isPool ? await this.client.getTedis() : this.client;
@@ -118,6 +133,7 @@ function validate(options:CacheOptions) {
     if(options.toCache && !Array.isArray(options.toCache)) throw new SyntaxError("No option toCache was provided / option toCache is not a valid Array");
     if(!options.toCache && !options.useAllModels) throw new SyntaxError("No toCache and no useAllModels provided..")
     if(!options.defaultCacheActions || !Array.isArray(options.defaultCacheActions)) throw new SyntaxError("No option defaultCacheActions was provided / option defaultCacheActions is not a valid Array");
+    if(options.defaultTTL)
     return true;
 }
 function bind(o: any) { // @ts-ignore
@@ -133,4 +149,9 @@ function bind(o: any) { // @ts-ignore
 export function prismaDragonflyRedisCache(options: CacheOptions) {
     const newCache = new prismaDragonflyRedisCacheMiddleware(options);
     return newCache.handle;
+}
+export function getRedisDataOfURL (str) {
+    // example url: "redis://username:password@hostname:port"
+    const [ username, [password, host], port ] = str.replace("redis://", "").split(":").map(x => x.includes("@") ? x.split("@") : x);
+    return { username, password, host, port }
 }
