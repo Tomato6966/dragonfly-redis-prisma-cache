@@ -48,7 +48,7 @@ export type MiddlewareParameters = {
     runInTransaction: boolean;
 }
 
-class prismaDragonflyRedisCacheMiddleware <Prisma> {
+class prismaDragonflyRedisCacheMiddleware {
     private client!: TedisPool | Tedis;
     private isPool!: boolean;
     public defaultCacheActions!: string[];
@@ -133,7 +133,6 @@ function validate(options:CacheOptions) {
 
 export function prismaDragonflyRedisCache(options: CacheOptions) {
     const newCache = new prismaDragonflyRedisCacheMiddleware(options);
-    console.log(newCache);
     return newCache.handle;
 }
 /**
