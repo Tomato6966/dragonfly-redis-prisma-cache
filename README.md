@@ -14,7 +14,7 @@ import { prismaDragonflyRedisCache } from 'dragonfly-redis-prisma-cache';
 const prisma = new PrismaClient();
 
 prisma.$use(prismaDragonflyRedisCache({
-    redisOptions:{
+    storageOptions:{
         // connection hostname/ipaddress
         host: "localhost",
         // Port for the dragonfly instance
@@ -56,7 +56,7 @@ example how i do it:
 ```js
 const { getRedisDataOfURL, prismaDragonflyRedisCache } = require("dragonfly-redis-prisma-cache");
 prisma.$use(prismaDragonflyRedisCache({
-    redisOptions: {
+    storageOptions: {
         ...(getRedisDataOfURL(process.env.DATABASECACHECONNECTURL)),
         min_conn: 100,
         max_conn: 1000,

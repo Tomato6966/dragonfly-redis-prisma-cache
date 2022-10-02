@@ -60,13 +60,10 @@ class prismaDragonflyRedisCacheMiddleware {
         ttl?: number,
         prefix?: string
     }[];
-    private options: any;
     constructor(options: CacheOptions){
 
-        this.options = options; 
-        //validate(options)
-        //if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
-        console.log(this)
+        validate(options)
+        if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) throw new SyntaxError("Something went wrong, not all options provided..");
         this.toCache = options?.toCache ?? [];
         this.defaultTTL = options?.defaultTTL ?? 0;
         this.defaultCacheActions = options.defaultCacheActions ?? [];
