@@ -70,7 +70,7 @@ class prismaDragonflyRedisCacheMiddleware <Prisma> {
 
     public handle = async (params: MiddlewareParameters, next: (params: MiddlewareParameters) => Promise<any>) => { 
         let result: any = null;
-        const instance = this.toCache.find(instance => (this.useAllModels || instance.model === params.model) && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
+        const instance = (this.useAllModels && this.defaultCacheActions.includes(params.action)) || this.toCache?.find?.(instance => instance.model === params.model && (this.defaultCacheActions.includes(params.action) || instance.actions.includes(params.action)))
         if(instance){
             const cacheKey = `${instance.prefix ? `${instance.prefix}-`: ``}${params.model}:${params.action}:${JSON.stringify(params.args)}`;
             // @ts-ignore
