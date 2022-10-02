@@ -117,7 +117,7 @@ class prismaDragonflyRedisCacheMiddleware {
             else {
                 // using stringified results, because that way it uses PPC2 from dragonfly to save 54% storage space
                 result = await next(params);
-                console.log("[Dragonfly-Redis-Prisma-Cache] Found something from the db and now storing it in:", cacheKey)
+                if(this.debug) console.log("[Dragonfly-Redis-Prisma-Cache] Found something from the db and now storing it in:", cacheKey)
                 if(data.ttl) {
                     await tedis.set(cacheKey, JSON.stringify(result, (_, v) => (typeof v === "bigint" ? v.toString() : v)), 'EX', data.ttl)
                 } else {
@@ -140,9 +140,8 @@ class prismaDragonflyRedisCacheMiddleware {
             const keysData = await tedis.keys(`*${params.model}:*`);
             let keys = [];
             if(params.args.where) {
-                const filtered = keysData.filter((k:string) => k.includes(JSON.stringify(params.args.where)))
+                const filtered = keysData.filter((k:string) => k.includes(JSON.stringify(params.args.where)) || k.includes("findMany"))
                 keys = filtered.length ? filtered : keysData;
-                console.log(keysData.length, filtered.length);
             }
             for(const key of keys) await tedis.del(key); 
             // @ts-ignore
