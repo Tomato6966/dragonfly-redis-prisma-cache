@@ -49,21 +49,21 @@ export type MiddlewareParameters = {
 }
 
 class prismaDragonflyRedisCacheMiddleware <Prisma> {
-    private client!: TedisPool | Tedis | null = null;
-    private isPool!: boolean = false;
-    private defaultCacheActions!: string[] = [];
-    private defaultTTL!: number = 0;
-    private useAllModels!: boolean = false;
-    private toCache!: {
+    client!: TedisPool | Tedis;
+    isPool!: boolean = false;
+    defaultCacheActions!: string[];
+    defaultTTL!: number;
+    useAllModels!: boolean;
+    toCache!: {
         model: string,
         actions: string[],
         ttl?: number,
         prefix?: string
-    }[] = [];
+    }[];
 
     constructor(options: CacheOptions){
         validate(options)
-        //bind(this);
+        bind(this);
         if(!options || (!options.toCache && !options.useAllModels) || !options.storageOptions) return;
         this.toCache = options?.toCache ?? [];
         this.defaultTTL = options?.defaultTTL ?? 0;
