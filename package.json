@@ -10,7 +10,7 @@
       "tedis": "^0.1.12"
     },
     "scripts": {
-        "test": "jest --config jestconfig.json",
+        "test": "jest",
         "build": "tsc",
         "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
         "lint": "tslint -p tsconfig.json",
